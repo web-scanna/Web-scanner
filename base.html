@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}WebScanner{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand">
+      <span class="nav-icon">⬡</span>
+      <span class="nav-title">WebScanner</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Scan</a>
+      <a href="/history" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">History</a>
+    </div>
+  </nav>
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span class="mono">WebScanner v2.0</span>
+    <span>Only scan sites you own or have permission to test.</span>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
