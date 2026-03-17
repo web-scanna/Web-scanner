@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}WebScanner — Security Audit Tool{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-eyebrow">Security Scanner</div>
+  <h1 class="hero-title">Audit any website<br>in seconds.</h1>
+  <p class="hero-sub">Check HTTPS, TLS config, security headers, cookies, and information disclosure — free, instant, no login.</p>
+
+  <form class="scan-form" id="scan-form" method="POST" action="/">
+    <div class="scan-input-wrap">
+      <input
+        class="scan-input"
+        type="text"
+        name="url"
+        id="url-input"
+        placeholder="https://example.com"
+        autocomplete="off"
+        spellcheck="false"
+        value="{{ request.form.get('url', '') }}"
+      />
+      <button type="submit" class="scan-btn" id="scan-btn">Scan →</button>
+    </div>
+    {% if error %}
+    <div class="error-msg">⚠ {{ error }}</div>
+    {% endif %}
+  </form>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">TLS &amp; HTTPS</div>
+      <div class="feature-desc">Cert expiry, version, and redirect chain analysis</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📋</span>
+      <div class="feature-title">Security headers</div>
+      <div class="feature-desc">8 OWASP-recommended headers checked and rated</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🍪</span>
+      <div class="feature-title">Cookie flags</div>
+      <div class="feature-desc">Secure, HttpOnly, and SameSite validation</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔍</span>
+      <div class="feature-title">Info disclosure</div>
+      <div class="feature-desc">Exposed files, server banners, stack traces</div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="scan-overlay" id="scan-overlay">
+  <div class="scan-spinner"></div>
+  <div class="scan-progress-text" id="progress-text">Connecting…</div>
+  <div class="scan-progress-sub">This may take 5–15 seconds</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const steps = [
+  "Connecting to host…",
+  "Checking TLS certificate…",
+  "Analysing security headers…",
+  "Checking cookies…",
+  "Scanning for exposed files…",
+  "Computing security score…",
+];
+
+document.getElementById('scan-form').addEventListener('submit', function(e) {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  const overlay = document.getElementById('scan-overlay');
+  const progressText = document.getElementById('progress-text');
+  overlay.classList.add('active');
+  let i = 0;
+  progressText.textContent = steps[0];
+  const interval = setInterval(() => {
+    i++;
+    if (i < steps.length) progressText.textContent = steps[i];
+    else clearInterval(interval);
+  }, 1800);
+});
+</script>
+{% endblock %}
