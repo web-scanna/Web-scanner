@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Scan History — WebScanner{% endblock %}
+
+{% block content %}
+<div class="history-page">
+  <h1 class="page-heading">Scan History</h1>
+  <p class="page-sub">{{ scans | length }} scan{% if scans | length != 1 %}s{% endif %} stored</p>
+
+  {% if scans %}
+  <div class="search-bar">
+    <input class="search-input" type="text" id="search-input" placeholder="Filter by URL…" oninput="filterTable(this.value)" />
+  </div>
+
+  <div class="history-table-wrap">
+    <table class="history-table" id="history-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)" data-col="0">URL <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable(1)" data-col="1">Score <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable(2)" data-col="2">Issues <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable(3)" data-col="3">Date <span class="sort-icon">↕</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        {% for scan in scans %}
+        <tr data-url="{{ scan.url | lower }}">
+          <td><div class="url-cell mono" title="{{ scan.url }}">{{ scan.url }}</div></td>
+          <td>
+            <span class="score-pill {% if scan.score >= 80 %}good{% elif scan.score >= 50 %}warn{% else %}bad{% endif %}">
+              {{ scan.score }}
+            </span>
+          </td>
+          <td>
+            {% if scan.issue_count == 0 %}
+              <span style="color:var(--green); font-family:var(--font-mono); font-size:12px;">0</span>
+            {% else %}
+              <span style="font-family:var(--font-mono); font-size:12px; color:{% if scan.issue_count > 5 %}var(--red){% else %}var(--amber){% endif %}">
+                {{ scan.issue_count }}
+              </span>
+            {% endif %}
+          </td>
+          <td><div class="ts-cell">{{ scan.timestamp[:16].replace('T', ' ') }}</div></td>
+          <td><a href="/results/{{ scan.id }}" class="view-btn">View →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="no-results" class="hidden" style="padding:2rem; text-align:center; color:var(--muted); font-size:13px;">
+    No scans match your filter.
+  </div>
+
+  {% else %}
+  <div class="history-table-wrap">
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No scans yet</div>
+      <div class="empty-sub">Run your first scan from the <a href="/">home page</a>.</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterTable(query) {
+  const rows = document.querySelectorAll('#history-body tr');
+  const q = query.toLowerCase();
+  let visible = 0;
+  rows.forEach(row => {
+    const url = row.dataset.url || '';
+    const show = url.includes(q);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const noResults = document.getElementById('no-results');
+  if (noResults) noResults.classList.toggle('hidden', visible > 0);
+}
+
+let sortDir = {};
+function sortTable(col) {
+  const tbody = document.getElementById('history-body');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const dir = sortDir[col] = !(sortDir[col]);
+
+  document.querySelectorAll('.history-table th').forEach((th, i) => {
+    th.classList.toggle('sorted', i === col);
+  });
+
+  rows.sort((a, b) => {
+    const getCellVal = (row) => {
+      const cells = row.querySelectorAll('td');
+      if (col === 0) return (cells[0]?.textContent || '').trim().toLowerCase();
+      if (col === 1) return parseFloat(cells[1]?.textContent || '0');
+      if (col === 2) return parseFloat(cells[2]?.textContent || '0');
+      if (col === 3) return (cells[3]?.textContent || '').trim();
+      return '';
+    };
+    const va = getCellVal(a), vb = getCellVal(b);
+    if (typeof va === 'number') return dir ? va - vb : vb - va;
+    return dir ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+}
+</script>
+{% endblock %}
